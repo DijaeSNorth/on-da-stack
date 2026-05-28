@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   BattlefieldLayoutSystem,
   CombatResolutionEngine,
@@ -53,6 +53,29 @@ export default function App() {
       focusedPlayerId,
     };
   }, [focusedPlayerId, mode, playerCount]);
+  useEffect(() => {
+    const syncRoute = () => {
+      if (window.location.hash.startsWith("#/replay")) {
+        setDemoView("share");
+      }
+    };
+
+    syncRoute();
+    window.addEventListener("hashchange", syncRoute);
+    return () => window.removeEventListener("hashchange", syncRoute);
+  }, []);
+
+  const chooseDemoView = (view: typeof demoView) => {
+    setDemoView(view);
+    if (view === "share") {
+      window.history.replaceState(null, "", "#/replay");
+      return;
+    }
+
+    if (window.location.hash.startsWith("#/replay")) {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+  };
 
   return (
     <main className="ods-prototype">
@@ -89,7 +112,7 @@ export default function App() {
               key={view.id}
               type="button"
               className={demoView === view.id ? "is-active" : ""}
-              onClick={() => setDemoView(view.id)}
+              onClick={() => chooseDemoView(view.id)}
             >
               <span>{view.eyebrow}</span>
               {view.label}
